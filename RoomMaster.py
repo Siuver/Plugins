@@ -2,11 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import re
+import os
+import json
+import io
 
 CONTROLLER_GROUP_NAME = "房管控制台"
-TARGET_GROUP_NAME = "涂鸦战士绝武互刷群"
-# TARGET_GROUP_NAME = "房管控制台"
+# TARGET_GROUP_NAME = "涂鸦战士绝武互刷群"
+TARGET_GROUP_NAME = "房管控制台"
 MAX_MEMBER_NUM = 4
+
+DATA_PATH = "/Users/Siuver/.qqbot-tmp/plugins/Plugins/data.json"
 
 HELP_MSG = '''鉴于之前绝武队组人总是组着组着人全不见了，这个房管插件是为了方便傻逼群友们写的。
 
@@ -37,23 +42,27 @@ xxx-：xxx表示绝武名，表示退出该绝武的组队
 
 没啦'''
 
-WEAPON_NAME=['火斧','火弩','火杖','风矛','风飞镖','风环','水爪','水枪','水书','光剑','光铳','光灯','暗刀','暗机枪','吉他','混刷','局地','废矿']
+WEAPON_NAME = ['火斧', '火弩', '扫把#火杖#火扫把', '风矛#风枪', '风镖#风飞镖', '风环', '水爪', '水枪', '水书', '光剑', '光铳',
+               '光灯', '暗刀', '暗机枪', '吉他', '混刷#杂图#绝图混刷#杂图混刷', '局地', '废矿', '火废矿', '光废矿', '风废矿', '暗废矿', '水废矿', '火图#火图混刷', '水图#水图混刷', '风图#风图混刷', '光图#光图混刷', '暗图#暗图混刷']
 
 GROUP_INFO = {}
+
 
 def sendMsgToTargetGroup(bot, msg):
     group = bot.List('group', TARGET_GROUP_NAME)[0]
     bot.SendTo(group, msg)
 
+
 def joinGroup(weaponName, memberName):
     if weaponName not in GROUP_INFO.keys():
         GROUP_INFO[weaponName] = []
-        
+
     if memberName in GROUP_INFO[weaponName]:
-        return '【%s】已加入过【%s】小队，居然还想再加一次？'%(memberName, weaponName)
+        return '【%s】已加入过【%s】队，居然还想再加一次？' % (memberName, weaponName)
     else:
         GROUP_INFO[weaponName].append(memberName)
-        return '【%s】成功加入【%s】小队'%(memberName, weaponName)
+        return '【%s】成功加入【%s】队' % (memberName, weaponName)
+
 
 def quitGroup(weaponName, memberName):
     if weaponName not in GROUP_INFO.keys():
@@ -63,9 +72,10 @@ def quitGroup(weaponName, memberName):
         return '你都没加过这队退啥呢'
     else:
         GROUP_INFO[weaponName].remove(memberName)
-        return '【%s】已退出【%s】队'%(memberName, weaponName)
+        return '【%s】已退出【%s】队' % (memberName, weaponName)
 
-def getGroupInfo(weaponName = "All"):
+
+def getGroupInfo(weaponName="All"):
     retStr = ""
     devider = "------------------\n"
     if weaponName == "All":
@@ -76,25 +86,26 @@ def getGroupInfo(weaponName = "All"):
             if len(memberList):
                 retStr += key + "：\n"
                 for memberName in memberList:
-                    retStr += '%s\n' % memberName
+                    retStr += '\t%s\n' % memberName
                     memberNum += 1
                 retStr += devider
         if memberNum == 0:
             retStr = '暂无任何求组信息'
-    else :
+    else:
         if weaponName in GROUP_INFO.keys():
             memberList = GROUP_INFO[weaponName]
             if len(memberList):
-                retStr = '【%s】求组信息如下：\n'%weaponName
+                retStr = '【%s】求组信息如下：\n' % weaponName
                 for memberName in memberList:
                     retStr += '%s\n' % memberName
             else:
                 retStr = '目前还没人求组【%s】' % weaponName
         else:
             retStr = '目前还没人求组【%s】' % weaponName
-                
+
     return retStr
-    
+
+
 def checkGroupFull(weaponName):
     msg = ""
     if weaponName in GROUP_INFO.keys():
@@ -105,50 +116,43 @@ def checkGroupFull(weaponName):
                 msg += '@%s ' % memberList.pop()
     return msg
 
+
+def onPlug(bot):
+    if os.path.exists(DATA_PATH):
+        with io.open(DATA_PATH, 'r') as f:
+            GROUP_INFO = json.load(f)
+
+
 def onQQMessage(bot, contact, member, content):
     if not bot.isMe(contact, member) and contact.name == TARGET_GROUP_NAME and "@ME" in content:
-        command = content[7:]  #除去@标签的content
-        if re.match(r'^帮助$', command):
+        if '帮助' in content:
             sendMsgToTargetGroup(bot, HELP_MSG)
         else:
-            reconized = False
-            debugStr = ""
-
-            if command == "All" or command == "all":
+            flag = False
+            debugStr = ''
+            if 'All' in content or 'all' in content:
                 sendMsgToTargetGroup(bot, getGroupInfo())
-                reconized = True
-
-            if not reconized:
-                for weaponName in WEAPON_NAME:
-                    if re.match('^%s$'%weaponName, command):
-                        sendMsgToTargetGroup(bot, getGroupInfo(weaponName))
-                        reconized = True
-                        break
-
-            if not reconized:
-                for weaponName in WEAPON_NAME:
-                    reStr = '^%s'%weaponName + r'\+$'
-                    if re.match(reStr, command) or re.match('^%s1$'%weaponName, command):
-                        sendMsgToTargetGroup(bot, joinGroup(weaponName, member.name))
-
+                flag = True
+            
+            for weaponName in WEAPON_NAME:
+                nameList = weaponName.split("#")
+                targetName = nameList[0]
+                for name in nameList:
+                    if re.search(name + r'(?=[+1])', content):
+                        sendMsgToTargetGroup(bot, joinGroup(targetName, member.name))
                         fullMsg = checkGroupFull(weaponName)
                         if fullMsg:
                             sendMsgToTargetGroup(bot, fullMsg)
-
-                        reconized = True
-                        break
-
-            if not reconized:
-                for weaponName in WEAPON_NAME:
-                    reStr = '^%s'%weaponName + r'-$'
-                    if re.match(reStr, command):
-                        sendMsgToTargetGroup(bot, quitGroup(weaponName, member.name))
-                        reconized = True
-                        break
+                        flag = True
+                    if re.search(name + r'(?=-)', content):
+                        sendMsgToTargetGroup(bot, joinGroup(targetName, member.name))
+                        flag = True
+                    if re.search(name + r'(?![+\-1])', content):
+                        sendMsgToTargetGroup(bot, getGroupInfo(targetName))
+                        flag = True
 
             if debugStr != "":
                 sendMsgToTargetGroup(bot, debugStr)
 
-            if not reconized:
+            if not flag:
                 sendMsgToTargetGroup(bot, "无法识别指令")
-
