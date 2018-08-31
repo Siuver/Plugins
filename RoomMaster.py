@@ -11,7 +11,7 @@ CONTROLLER_GROUP_NAME = "房管控制台"
 TARGET_GROUP_NAME = "房管控制台"
 MAX_MEMBER_NUM = 4
 
-DATA_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "Plugins/data.json")
+DATA_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "Plugins", "data.json")
 
 NEW_MSG = '''新房管的功能可以说强大了不少，基本上连松鼠都能用，不会再有太多的指令无法识别的问题了，除非你是真的在乱搞（bug是没有的，这辈子都不会有的）
 
