@@ -174,6 +174,7 @@ def checkGroupFull(weaponName):
 
 def onPlug(bot):
     sendMsgToController(bot, "房管上线成功")
+    sendMsgToController(bot, DATA_PATH)
     getFormerRecord(bot)
     sendMsgToController(bot, getGroupInfo())
 
