@@ -11,7 +11,7 @@ TARGET_GROUP_NAME = "涂鸦战士绝武互刷群"
 # TARGET_GROUP_NAME = "房管控制台"
 MAX_MEMBER_NUM = 4
 
-DATA_PATH = "/Users/Siuver/.qqbot-tmp/plugins/Plugins/data.json"
+DATA_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "Plugins/data.json")
 
 NEW_MSG = '''新房管的功能可以说强大了不少，基本上连松鼠都能用，不会再有太多的指令无法识别的问题了，除非你是真的在乱搞（bug是没有的，这辈子都不会有的）
 
@@ -71,13 +71,13 @@ def sendMsgToController(bot, msg):
 
 
 def getFormerRecord(bot):
-    if os.path.exists(DATA_PATH): 
-            with open(DATA_PATH, 'r') as f:
-                try:
-                    global GROUP_INFO
-                    GROUP_INFO = eraseTheFxxkingU(json.loads(f.read(), encoding='utf-8'))
-                except:
-                    pass
+    if os.path.exists(DATA_PATH):
+        with open(DATA_PATH, 'r') as f:
+            try:
+                global GROUP_INFO
+                GROUP_INFO = eraseTheFxxkingU(json.loads(f.read(), encoding='utf-8'))
+            except:
+                pass
 
 
 def recordGroupInfo():
@@ -168,12 +168,14 @@ def checkGroupFull(weaponName):
             msg = '【%s】队已经人齐了：\n' % weaponName
             while len(memberList):
                 msg += '@%s ' % memberList.pop()
+            recordGroupInfo()
     return msg
 
 
 def onPlug(bot):
     sendMsgToController(bot, "房管上线成功")
     getFormerRecord(bot)
+    sendMsgToController(bot, getGroupInfo())
 
 
 def onUnplug(bot):
@@ -203,7 +205,7 @@ def onQQMessage(bot, contact, member, content):
                 for name in nameList:
                     if re.search(name + r'(?=[+1])', content):
                         sendMsgToTargetGroup(bot, joinGroup(targetName, member.name))
-                        fullMsg = checkGroupFull(weaponName)
+                        fullMsg = checkGroupFull(targetName)
                         if fullMsg:
                             sendMsgToTargetGroup(bot, fullMsg)
                         flag = True
