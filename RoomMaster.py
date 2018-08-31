@@ -127,7 +127,7 @@ def getGroupInfo(weaponName="All"):
             if len(memberList):
                 retStr += key + "：\n"
                 for memberName in memberList:
-                    retStr += '\t%s\n' % memberName
+                    retStr += '    %s\n' % memberName
                     memberNum += 1
                 retStr += devider
         if memberNum == 0:
@@ -148,7 +148,7 @@ def getGroupInfo(weaponName="All"):
 
 
 def checkMyGroup(memberName):
-    retMsg = '【%s】加入过的队伍有:\n\t' % memberName
+    retMsg = '【%s】加入过的队伍有:\n    ' % memberName
     num = 0
     for weaponName in GROUP_INFO.keys():
         memberList = GROUP_INFO[weaponName]
