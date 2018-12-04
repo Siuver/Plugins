@@ -187,8 +187,8 @@ def onQQMessage(bot, contact, member, content):
     if not bot.isMe(contact, member) and contact.name == TARGET_GROUP_NAME and "@ME" in content:
         if '帮助' in content:
             sendMsgToTargetGroup(bot, HELP_MSG)
-        elif 'new' in content:
-            sendMsgToTargetGroup(bot, NEW_MSG)
+        # elif 'new' in content:
+        #     sendMsgToTargetGroup(bot, NEW_MSG)
         else:
             flag = False
             debugStr = ''
